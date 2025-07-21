@@ -1,0 +1,21 @@
+services:
+  chainlink-api-python:
+    build: .
+    ports:
+      - "8001:8000"
+    environment:
+      - PORT=8000
+    volumes:
+      - ../../avalanche_chainlink_feeds.csv:/app/avalanche_chainlink_feeds.csv:ro
+      - ../../chainlink_abi_interface.json:/app/chainlink_abi_interface.json:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import httpx; httpx.get('http://localhost:8000/health', timeout=3.0)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.chainlink-api-python.rule=Host(`chainlink-api-python.localhost`)"
+      - "traefik.http.services.chainlink-api-python.loadbalancer.server.port=8000"
