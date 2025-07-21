@@ -1,0 +1,28 @@
+{
+  "name": "avalanche-chainlink-prices",
+  "version": "1.0.0",
+  "description": "Command line tool to fetch all Avalanche Chainlink feed prices via Multicall3",
+  "main": "multicall_price_fetcher.js",
+  "scripts": {
+    "start": "node multicall_price_fetcher.js",
+    "prices": "node multicall_price_fetcher.js",
+    "refresh": "node scripts/refresh-feeds.js"
+  },
+  "bin": {
+    "avax-prices": "./multicall_price_fetcher.js"
+  },
+  "dependencies": {
+    "ethers": "^6.8.1",
+    "csv-parser": "^3.0.0",
+    "csv-writer": "^1.6.0"
+  },
+  "keywords": [
+    "chainlink",
+    "avalanche",
+    "price-feeds",
+    "multicall",
+    "defi"
+  ],
+  "author": "Avasnap",
+  "license": "MIT"
+}

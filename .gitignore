@@ -1,0 +1,40 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Environment variables and secrets
+.env
+.env.*
+*.env
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Temporary files and output
+tmp/
+temp/
+*.tmp
+
+# Downloaded data files (refresh process generates these)
+chainlink_feeds_new.html
+feeds_data_new.json
+
+# Price output files (timestamped, regenerated each run)
+avalanche_prices_*.json
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Coverage and testing
+coverage/
+.nyc_output/
