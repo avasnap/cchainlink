@@ -6,15 +6,30 @@
   "scripts": {
     "start": "node multicall_price_fetcher.js",
     "prices": "node multicall_price_fetcher.js",
-    "refresh": "node scripts/refresh-feeds.js"
+    "refresh": "node scripts/refresh-feeds.js",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
   },
   "bin": {
     "avax-prices": "./multicall_price_fetcher.js"
   },
   "dependencies": {
-    "ethers": "^6.8.1",
     "csv-parser": "^3.0.0",
-    "csv-writer": "^1.6.0"
+    "csv-writer": "^1.6.0",
+    "ethers": "^6.8.1"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testTimeout": 30000,
+    "collectCoverageFrom": [
+      "*.js",
+      "scripts/*.js",
+      "!test/**"
+    ]
   },
   "keywords": [
     "chainlink",

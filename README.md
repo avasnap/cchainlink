@@ -50,6 +50,11 @@ npm run prices
 npm run refresh
 ```
 
+### Run Tests
+```bash
+npm test
+```
+
 ### Make Executable
 ```bash
 chmod +x multicall_price_fetcher.js
