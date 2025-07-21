@@ -1,6 +1,6 @@
 # Avalanche Chainlink Price Feeds
 
-A complete dataset and **production-ready API implementations** for fetching **all 73 Chainlink price feeds** on Avalanche C-Chain mainnet in a **single Multicall3 transaction**.
+A complete dataset and **production-ready API implementations** for fetching **all 73 Chainlink data feeds** on Avalanche C-Chain mainnet in a **single Multicall3 transaction**.
 
 This project provides both a straightforward command-line tool and **full REST API implementations in TypeScript and Python** - perfect for informing coding agents how to efficiently get prices from a single multicall, or as working examples to build upon. Rather than making 73 separate RPC calls, everything can be fetched efficiently in one transaction.
 
@@ -39,8 +39,8 @@ curl http://localhost:8001/prices
 
 ## 📊 Complete Dataset
 
-- **73 Total Feeds** on Avalanche C-Chain mainnet (Chain ID: 43114)
-- **Real-time prices** from official Chainlink oracles
+- **73 Total Data Feeds** on Avalanche C-Chain mainnet (Chain ID: 43114)
+- **Real-time data** from official Chainlink oracles
 - **Complete metadata** including contract addresses, decimals, heartbeats
 - **Single standard ABI** works with all feeds (AggregatorV3Interface)
 
@@ -94,8 +94,8 @@ This project includes **two complete, production-ready REST API implementations*
 - **Testing**: Validate functionality across different tech stacks
 
 ### **API Features**
-- ✅ **All 73 Chainlink feeds** on Avalanche C-Chain
-- ✅ **Multicall3 optimization** - fetch all prices in one transaction
+- ✅ **All 73 Chainlink data feeds** on Avalanche C-Chain
+- ✅ **Multicall3 optimization** - fetch all data in one transaction
 - ✅ **RESTful endpoints** with comprehensive documentation
 - ✅ **Docker containerized** for easy deployment
 - ✅ **Health checks** and monitoring endpoints
@@ -157,7 +157,7 @@ curl http://localhost:8001/prices | jq
 
 ## 📋 Usage
 
-The command-line tool fetches all 73 Avalanche Chainlink feed prices in a **single Multicall3 transaction**:
+The command-line tool fetches all 73 Avalanche Chainlink data feeds in a **single Multicall3 transaction**:
 
 ```bash
 node multicall_price_fetcher.js
@@ -166,10 +166,10 @@ node multicall_price_fetcher.js
 **Live Output Example:**
 ```
 Loaded 73 Chainlink feeds
-Fetching prices for 73 feeds via Multicall3...
-Fetched all prices in 2044ms at block 65813232
+Fetching data for 73 feeds via Multicall3...
+Fetched all data in 2044ms at block 65813232
 
-=== AVALANCHE CHAINLINK FEED PRICES ===
+=== AVALANCHE CHAINLINK DATA FEEDS ===
 📈 BTC / USD: $117103.73905200 (Updated: 2025-07-21T00:40:58.000Z)
 📈 ETH / USD: $3728.93703912 (Updated: 2025-07-21T00:40:46.000Z)
 📈 AVAX / USD: $24.83984887 (Updated: 2025-07-21T00:40:56.000Z)
@@ -204,12 +204,12 @@ Fetched all prices in 2044ms at block 65813232
 - **URL:** `https://api.avax.network/ext/bc/C/rpc`
 
 ### Performance
-- **Single Multicall3 transaction** fetches all 73 prices
+- **Single Multicall3 transaction** fetches all 73 data feeds
 - **~2 seconds** typical response time (including network latency)
 - **Gas efficient** - 1 transaction vs 73 individual calls
 - **No rate limiting** - one request gets everything
 
-## 💡 How to Use These Prices
+## 💡 How to Use This Data
 
 ### 1. Use the Proxy Addresses (CRITICAL!)
 Always use `proxy_address` from CSV, **never** `contract_address`:
@@ -238,14 +238,18 @@ interface AggregatorV3Interface {
 }
 ```
 
-### 3. Price Calculation Formula
+### 3. Data Value Calculation Formula
 ```javascript
-// Convert raw answer to human-readable price
-const price = Number(answer) / Math.pow(10, decimals);
+// Convert raw answer to human-readable value
+const value = Number(answer) / Math.pow(10, decimals);
 
-// Example: BTC/USD 
+// Example: BTC/USD price feed
 // answer = 11710373905200, decimals = 8
-// price = 11710373905200 / 10^8 = $117,103.74
+// value = 11710373905200 / 10^8 = $117,103.74
+
+// Example: BTC.b Proof of Reserve feed
+// answer = 123456789012345678, decimals = 18
+// value = 123456789012345678 / 10^18 = 123.456789 BTC
 ```
 
 ### 4. Multicall3 Integration Example
@@ -255,11 +259,13 @@ const { ethers } = require('ethers');
 // Multicall3 on Avalanche C-Chain
 const MULTICALL3 = "0xcA11bde05977b3631167028862bE2a173976CA11";
 
-// Get multiple prices in one call
+// Get multiple data feeds in one call
 const calls = [
-  { target: "0x2779D32d5166BAaa2B2b658333bA7e6Ec0C65743", // BTC/USD
+  { target: "0x2779D32d5166BAaa2B2b658333bA7e6Ec0C65743", // BTC/USD price
     callData: chainlinkInterface.encodeFunctionData('latestRoundData') },
-  { target: "0x976B3D034E162d8bD72D6b9C989d545b839003b0", // ETH/USD  
+  { target: "0x976B3D034E162d8bD72D6b9C989d545b839003b0", // ETH/USD price  
+    callData: chainlinkInterface.encodeFunctionData('latestRoundData') },
+  { target: "0x700F768E18c4850D8E266F3398F5Bf5A2aB8e0B3", // BTC.b PoR reserves
     callData: chainlinkInterface.encodeFunctionData('latestRoundData') },
   // ... add all 73 feeds
 ];
@@ -277,7 +283,7 @@ const [blockNumber, results] = await multicall.aggregate.staticCall(calls);
 
 ## 📋 Popular Feed Addresses
 
-| Feed | Proxy Address | Decimals |
+| Data Feed | Proxy Address | Decimals |
 |------|---------------|----------|
 | **BTC/USD** | `0x2779D32d5166BAaa2B2b658333bA7e6Ec0C65743` | 8 |
 | **ETH/USD** | `0x976B3D034E162d8bD72D6b9C989d545b839003b0` | 8 |
