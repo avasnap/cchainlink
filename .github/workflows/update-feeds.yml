@@ -32,17 +32,20 @@ jobs:
       - name: Run feed updater
         run: npm run refresh
 
+      - name: Generate JSON for GitHub Pages
+        run: node scripts/csv-to-json.js
+
       - name: Check for changes
         id: git-check
         run: |
-          git diff --exit-code avalanche_chainlink_feeds.csv || echo "changed=true" >> $GITHUB_OUTPUT
+          git diff --exit-code avalanche_chainlink_feeds.csv docs/feeds.json || echo "changed=true" >> $GITHUB_OUTPUT
 
       - name: Commit and push if changed
         if: steps.git-check.outputs.changed == 'true'
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git add avalanche_chainlink_feeds.csv
+          git add avalanche_chainlink_feeds.csv docs/feeds.json
           git commit -m "Update Chainlink feeds data
 
           Automated update from Chainlink Data Feeds page
@@ -63,3 +66,4 @@ jobs:
           echo "- **Status:** ${{ steps.git-check.outputs.changed == 'true' && '✅ Updated' || '✓ No changes' }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Timestamp:** $(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
           echo "- **Total Feeds:** $(tail -n +2 avalanche_chainlink_feeds.csv | wc -l)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Files Updated:** CSV and JSON for GitHub Pages" >> $GITHUB_STEP_SUMMARY
