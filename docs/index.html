@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Avalanche Chainlink Price Feeds - Live</title>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@6.9.0/dist/ethers.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            padding: 30px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .stat-card .label {
+            color: #6c757d;
+            font-size: 0.9em;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-card .value {
+            color: #2c3e50;
+            font-size: 1.8em;
+            font-weight: 700;
+        }
+
+        .stat-card .value.loading {
+            color: #6c757d;
+            font-size: 1.2em;
+        }
+
+        .controls {
+            padding: 20px 30px;
+            background: white;
+            border-bottom: 1px solid #dee2e6;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 12px 20px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: all 0.3s;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .filter-btn {
+            padding: 12px 24px;
+            border: 2px solid #dee2e6;
+            background: white;
+            border-radius: 8px;
+            font-size: 0.95em;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        .filter-btn:hover {
+            border-color: #667eea;
+            background: #667eea;
+            color: white;
+        }
+
+        .filter-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            padding: 30px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: #2c3e50;
+            color: white;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        th {
+            padding: 16px;
+            text-align: left;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.85em;
+            letter-spacing: 0.5px;
+        }
+
+        tbody tr {
+            border-bottom: 1px solid #dee2e6;
+            transition: background 0.2s;
+        }
+
+        tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        td {
+            padding: 16px;
+            font-size: 0.95em;
+        }
+
+        .feed-name {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .price {
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 1.1em;
+            font-weight: 700;
+            color: #27ae60;
+        }
+
+        .address {
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 0.85em;
+            color: #6c757d;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .badge.crypto {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .badge.fiat {
+            background: #f3e5f5;
+            color: #7b1fa2;
+        }
+
+        .badge.commodity {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+
+        .badge.por {
+            background: #e8f5e9;
+            color: #388e3c;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+            font-size: 1.2em;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: #fee;
+            color: #c33;
+            padding: 20px;
+            margin: 20px;
+            border-radius: 8px;
+            border: 1px solid #fcc;
+        }
+
+        .timestamp {
+            color: #6c757d;
+            font-size: 0.85em;
+        }
+
+        .refresh-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: #27ae60;
+            border-radius: 50%;
+            margin-left: 8px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Avalanche Chainlink Price Feeds</h1>
+            <p>Live on-chain data • Auto-refresh every 5 seconds <span class="refresh-indicator"></span></p>
+        </header>
+
+        <div class="stats">
+            <div class="stat-card">
+                <div class="label">Total Feeds</div>
+                <div class="value" id="totalFeeds">--</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Block Number</div>
+                <div class="value" id="blockNumber">--</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Last Updated</div>
+                <div class="value timestamp" id="lastUpdate" style="font-size: 1em;">--</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Status</div>
+                <div class="value loading" id="status">Loading...</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Search by name or symbol..." />
+            </div>
+            <button class="filter-btn active" data-filter="all">All</button>
+            <button class="filter-btn" data-filter="Crypto">Crypto</button>
+            <button class="filter-btn" data-filter="Fiat">Fiat</button>
+            <button class="filter-btn" data-filter="Proof of Reserve">PoR</button>
+            <button class="filter-btn" data-filter="Commodity">Commodity</button>
+        </div>
+
+        <div class="table-container">
+            <div id="loadingIndicator" class="loading">
+                <div class="spinner"></div>
+                <p>Fetching live prices from Avalanche blockchain...</p>
+            </div>
+            <table id="priceTable" style="display: none;">
+                <thead>
+                    <tr>
+                        <th>Feed Name</th>
+                        <th>Price</th>
+                        <th>Type</th>
+                        <th>Decimals</th>
+                        <th>Last Updated</th>
+                        <th>Proxy Address</th>
+                    </tr>
+                </thead>
+                <tbody id="priceTableBody">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const MULTICALL3_ADDRESS = '0xcA11bde05977b3631167028862bE2a173976CA11';
+        const AVALANCHE_RPC = 'https://api.avax.network/ext/bc/C/rpc';
+
+        const MULTICALL3_ABI = [
+            {
+                "inputs": [{"components": [{"internalType": "address", "name": "target", "type": "address"}, {"internalType": "bytes", "name": "callData", "type": "bytes"}], "internalType": "struct Multicall3.Call[]", "name": "calls", "type": "tuple[]"}],
+                "name": "aggregate",
+                "outputs": [{"internalType": "uint256", "name": "blockNumber", "type": "uint256"}, {"internalType": "bytes[]", "name": "returnData", "type": "bytes[]"}],
+                "stateMutability": "payable",
+                "type": "function"
+            }
+        ];
+
+        const CHAINLINK_ABI = [
+            {
+                "inputs": [],
+                "name": "latestRoundData",
+                "outputs": [
+                    {"internalType": "uint80", "name": "roundId", "type": "uint80"},
+                    {"internalType": "int256", "name": "answer", "type": "int256"},
+                    {"internalType": "uint256", "name": "startedAt", "type": "uint256"},
+                    {"internalType": "uint256", "name": "updatedAt", "type": "uint256"},
+                    {"internalType": "uint80", "name": "answeredInRound", "type": "uint80"}
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            }
+        ];
+
+        const FEEDS = [
+            {"name":"AAVE / USD","proxy_address":"0x3CA13391E9fb38a75330fb28f8cc2eB3D9ceceED","decimals":8,"asset_class":"Crypto"},
+            {"name":"AAVE Network Emergency Count (Avalanche)","proxy_address":"0x41185495Bc8297a65DC46f94001DC7233775EbEe","decimals":0,"asset_class":"Crypto"},
+            {"name":"AAVE.e Proof of Reserves","proxy_address":"0x14C4c668E34c09E1FBA823aD5DB47F60aeBDD4F7","decimals":18,"asset_class":"Proof of Reserve"},
+            {"name":"ADA / USD","proxy_address":"0x69C2703b8F1A85a2EF6aBDd085699a9F909BE053","decimals":8,"asset_class":"Crypto"},
+            {"name":"ALPHA / USD","proxy_address":"0x7B0ca9A6D03FE0467A31Ca850f5bcA51e027B3aF","decimals":8,"asset_class":"Crypto"},
+            {"name":"ARB / USD","proxy_address":"0xd99bcAdbE216D82f4B77eC54a99ea1b6bA96549b","decimals":8,"asset_class":"Crypto"},
+            {"name":"AUSD / USD","proxy_address":"0x5C2d58627Fbe746f5ea24Ef6D618f09f8e3f0122","decimals":8,"asset_class":"Crypto"},
+            {"name":"AVAX / USD","proxy_address":"0x0A77230d17318075983913bC2145DB16C7366156","decimals":8,"asset_class":"Crypto"},
+            {"name":"AXS / USD","proxy_address":"0x155835C5755205597d62703a5A0b37e57a26Ee5C","decimals":8,"asset_class":"Crypto"},
+            {"name":"BAT / USD","proxy_address":"0xe89B3CE86D25599D1e615C0f6a353B4572FF868D","decimals":8,"asset_class":"Crypto"},
+            {"name":"BEAM / USD","proxy_address":"0x3427232b88Ce4e7d62A03289247eE0cA5324f6ba","decimals":8,"asset_class":"Crypto"},
+            {"name":"BNB / USD","proxy_address":"0xBb92195Ec95DE626346eeC8282D53e261dF95241","decimals":8,"asset_class":"Crypto"},
+            {"name":"BTC / USD","proxy_address":"0x2779D32d5166BAaa2B2b658333bA7e6Ec0C65743","decimals":8,"asset_class":"Crypto"},
+            {"name":"BTC.b Proof of Reserves","proxy_address":"0x99311B4bf6D8E3D3B4b9fbdD09a1B0F4Ad8e06E9","decimals":8,"asset_class":"Proof of Reserve"},
+            {"name":"CHF / USD","proxy_address":"0xA418573AB5226711c8564Eeb449c3618ABFaf677","decimals":8,"asset_class":"Fiat"},
+            {"name":"CHZ / USD","proxy_address":"0xC4D7270aCc921DE5A17452437257f075C1298eB3","decimals":8,"asset_class":"Crypto"},
+            {"name":"COMP / USD","proxy_address":"0x9D6AA0AC8c4818433bEA7a74F49C73B57BcEC4Ec","decimals":8,"asset_class":"Crypto"},
+            {"name":"COQ / USD","proxy_address":"0x5B4712ce553E94d9b22bA3CfA10CB6F32fb828E0","decimals":18,"asset_class":"Crypto"},
+            {"name":"CRV / USD","proxy_address":"0x7CF8A6090A9053B01F3DF4D4e6CfEdd8c90d9027","decimals":8,"asset_class":"Crypto"},
+            {"name":"CVX / USD","proxy_address":"0x52F8026423B5E04FdD9E4b5725B68230b71D019b","decimals":8,"asset_class":"Crypto"},
+            {"name":"CZK / USD","proxy_address":"0x545d17579D0F7b422Cd647B9E6a6FA4b45F6e1C5","decimals":8,"asset_class":"Fiat"},
+            {"name":"Calculated SAVAX / USD","proxy_address":"0x2854Ca10a54800e15A2a25cFa52567166434Ff0a","decimals":18,"asset_class":"Crypto"},
+            {"name":"DAI / USD","proxy_address":"0x51D7180edA2260cc4F6e4EebB82FEF5c3c2B8300","decimals":8,"asset_class":"Crypto"},
+            {"name":"DAI.e Proof of Reserves","proxy_address":"0x976D7fAc81A49FA71EF20694a3C56B9eFB93c30B","decimals":18,"asset_class":"Proof of Reserve"},
+            {"name":"DOT / USD","proxy_address":"0xD73a74314AcCb53b30cAfDA0cb61c9772B57C4a2","decimals":8,"asset_class":"Crypto"},
+            {"name":"ETH / USD","proxy_address":"0x976B3D034E162d8bD72D6b9C989d545b839003b0","decimals":8,"asset_class":"Crypto"},
+            {"name":"EUR / USD","proxy_address":"0x192f2DBA961Bb0277520C082d6bfa87D5961333E","decimals":8,"asset_class":"Fiat"},
+            {"name":"EURC / USD","proxy_address":"0x3368310bC4AeE5D96486A73bae8E6b49FcDE62D3","decimals":8,"asset_class":"Crypto"},
+            {"name":"EmCH Reserves","proxy_address":"0x0d2807dc7FA52d3B38be564B64a2b37753C49AdD","decimals":8,"asset_class":"Proof of Reserve"},
+            {"name":"FIL / USD","proxy_address":"0x2F194315f122d374a27973e259783d5C864A5bf6","decimals":8,"asset_class":"Crypto"},
+            {"name":"FRAX / USD","proxy_address":"0xbBa56eF1565354217a3353a466edB82E8F25b08e","decimals":8,"asset_class":"Crypto"},
+            {"name":"FXS / USD","proxy_address":"0x12Af94c3716bbf339Aa26BfD927DDdE63B27D50C","decimals":8,"asset_class":"Crypto"},
+            {"name":"GHO / USD","proxy_address":"0x076DE3812BDbdAe1330064fc01Adf7f4EAa123f3","decimals":8,"asset_class":"Crypto"},
+            {"name":"GMX / USD","proxy_address":"0x3F968A21647d7ca81Fb8A5b69c0A452701d5DCe8","decimals":8,"asset_class":"Crypto"},
+            {"name":"Ion Digital Total Reserve","proxy_address":"0x121C188f76831f504bD29C753074B37a4177cEc3","decimals":18,"asset_class":"Proof of Reserve"},
+            {"name":"JOE / USD","proxy_address":"0x02D35d3a8aC3e1626d3eE09A78Dd87286F5E8e3a","decimals":8,"asset_class":"Crypto"},
+            {"name":"JPY / USD","proxy_address":"0xf8B283aD4d969ECFD70005714DD5910160565b94","decimals":8,"asset_class":"Fiat"},
+            {"name":"KNC / USD","proxy_address":"0x9df2195dc96e6Ef983B1aAC275649F3f28F82Aa1","decimals":8,"asset_class":"Crypto"},
+            {"name":"LINK / AVAX","proxy_address":"0x1b8a25F73c9420dD507406C3A3816A276b62f56a","decimals":18,"asset_class":"Crypto"},
+            {"name":"LINK / USD","proxy_address":"0x49ccd9ca821EfEab2b98c60dC60F518E765EDe9a","decimals":8,"asset_class":"Crypto"},
+            {"name":"LINK.e Proof of Reserves","proxy_address":"0x943cEF1B112Ca9FD7EDaDC9A46477d3812a382b6","decimals":18,"asset_class":"Proof of Reserve"},
+            {"name":"MANA / USD","proxy_address":"0x774f067083f23cAB866310489419C884a6Dc00a8","decimals":8,"asset_class":"Crypto"},
+            {"name":"MKR / USD","proxy_address":"0x3E54eB0475051401D093702A5DB84EFa1Ab77b14","decimals":8,"asset_class":"Crypto"},
+            {"name":"NEAR / USD","proxy_address":"0x7FDE7f51dc2580dd051e17A333E28CDC8176da0A","decimals":8,"asset_class":"Crypto"},
+            {"name":"POL / USD","proxy_address":"0x7B0e7d292d414788B080EfCa58b04B6372789639","decimals":8,"asset_class":"Crypto"},
+            {"name":"QI / USD","proxy_address":"0x36E039e6391A5E7A7267650979fdf613f659be5D","decimals":8,"asset_class":"Crypto"},
+            {"name":"SAND / USD","proxy_address":"0x6f2A1D4014FED967172FC7caCf7a6e04Cf02752e","decimals":8,"asset_class":"Crypto"},
+            {"name":"SGD / USD","proxy_address":"0x05950959B6d876ae0fed1BBe5Caa2d74d8659D59","decimals":8,"asset_class":"Fiat"},
+            {"name":"SHIB / USD","proxy_address":"0x7Ee401373A92f885a7C3A53CF46dbe661eaFb1C0","decimals":18,"asset_class":"Crypto"},
+            {"name":"SNX / USD","proxy_address":"0x01752eAAB988ECb0ceBa2C8FC97c4f1d38Bf246D","decimals":8,"asset_class":"Crypto"},
+            {"name":"SPELL / USD","proxy_address":"0x4F3ddF9378a4865cf4f28BE51E10AECb83B7daeE","decimals":8,"asset_class":"Crypto"},
+            {"name":"SUSHI / USD","proxy_address":"0x449A373A090d8A1e5F74c63Ef831Ceff39E94563","decimals":8,"asset_class":"Crypto"},
+            {"name":"SolvBTC.BBN / SolvBTC Exchange Rate","proxy_address":"0xc0990e0989141a5F535a2a24b6Af65618CC83d32","decimals":18,"asset_class":"Crypto"},
+            {"name":"TRY / USD","proxy_address":"0xA61bF273688Ea095b5e4c11f1AF5E763F7aEEE91","decimals":8,"asset_class":"Fiat"},
+            {"name":"TUSD / USD","proxy_address":"0x9Cf3Ef104A973b351B2c032AA6793c3A6F76b448","decimals":8,"asset_class":"Crypto"},
+            {"name":"UNI / USD","proxy_address":"0x9a1372f9b1B71B3A5a72E092AE67E172dBd7Daaa","decimals":8,"asset_class":"Crypto"},
+            {"name":"USDC / USD","proxy_address":"0xF096872672F44d6EBA71458D74fe67F9a77a23B9","decimals":8,"asset_class":"Crypto"},
+            {"name":"USDC.e Proof of Reserves","proxy_address":"0x63769951E4cfDbDC653dD9BBde63D2Ce0746e5F2","decimals":6,"asset_class":"Proof of Reserve"},
+            {"name":"USDT / USD","proxy_address":"0xEBE676ee90Fe1112671f19b6B7459bC678B67e8a","decimals":8,"asset_class":"Crypto"},
+            {"name":"USDT.e Proof of Reserves","proxy_address":"0x94D8c2548018C27F1aa078A23C4158206bE1CC72","decimals":6,"asset_class":"Proof of Reserve"},
+            {"name":"WBTC / USD","proxy_address":"0x86442E3a98558357d46E6182F4b262f76c4fa26F","decimals":8,"asset_class":"Crypto"},
+            {"name":"WBTC.e Proof of Reserves","proxy_address":"0xebEfEAA58636DF9B20a4fAd78Fad8759e6A20e87","decimals":8,"asset_class":"Proof of Reserve"},
+            {"name":"WETH.e Proof of Reserves","proxy_address":"0xDDaf9290D057BfA12d7576e6dADC109421F31948","decimals":18,"asset_class":"Proof of Reserve"},
+            {"name":"WOO / ETH","proxy_address":"0xfAa665F5a0e13beea63b6DfF601DD634959690Df","decimals":18,"asset_class":"Crypto"},
+            {"name":"WSTETH / ETH","proxy_address":"0xCF60B4E089eA1ABA29C01b017b38c2f7D69Eb36B","decimals":18,"asset_class":"Crypto"},
+            {"name":"WSTETH / USD","proxy_address":"0xB5f607A2bb2C950053F4DA1F535180e5902EAD16","decimals":8,"asset_class":"Crypto"},
+            {"name":"XAG / USD","proxy_address":"0xA771e0D1e9E1eCc07C56CC38240779E54337d682","decimals":8,"asset_class":"Commodity"},
+            {"name":"XAU / USD","proxy_address":"0x1F41EF93dece881Ad0b98082B2d44D3f6F0C515B","decimals":8,"asset_class":"Commodity"},
+            {"name":"YFI / USD","proxy_address":"0x28043B1Ebd41860B93EC1F1eC19560760B6dB556","decimals":8,"asset_class":"Crypto"},
+            {"name":"deUSD / USD","proxy_address":"0x7E77D9F06056017334e26bEd92176222169DE6C1","decimals":8,"asset_class":"Crypto"},
+            {"name":"fsBTC - Frictionless Bitcoin Treasury Fund - Reserves","proxy_address":"0xfD2b540D6c147D0889A1F1B97a2A9aB694992677","decimals":8,"asset_class":"Proof of Reserve"},
+            {"name":"solvBTC / BTC","proxy_address":"0x5ff6c083B7B2BD0D61beB7173B3757e1a1e6E1C6","decimals":8,"asset_class":"Crypto"},
+            {"name":"wstETH-stETH Exchange Rate","proxy_address":"0x84FF93CAD57DcD39b21895171D30A7A0e7851C75","decimals":18,"asset_class":"Crypto"}
+        ];
+
+        let allPrices = [];
+        let currentFilter = 'all';
+        let searchTerm = '';
+
+        async function fetchPrices() {
+            try {
+                const provider = new ethers.JsonRpcProvider(AVALANCHE_RPC);
+                const multicall = new ethers.Contract(MULTICALL3_ADDRESS, MULTICALL3_ABI, provider);
+                const chainlinkInterface = new ethers.Interface(CHAINLINK_ABI);
+
+                const calls = FEEDS.map(feed => ({
+                    target: feed.proxy_address,
+                    callData: chainlinkInterface.encodeFunctionData('latestRoundData', [])
+                }));
+
+                const [blockNumber, returnData] = await multicall.aggregate.staticCall(calls);
+
+                const results = returnData.map((data, index) => {
+                    try {
+                        const [roundId, answer, startedAt, updatedAt, answeredInRound] =
+                            chainlinkInterface.decodeFunctionResult('latestRoundData', data);
+
+                        const feed = FEEDS[index];
+                        const price = Number(answer) / Math.pow(10, feed.decimals);
+
+                        return {
+                            name: feed.name,
+                            proxy: feed.proxy_address,
+                            price: price,
+                            decimals: feed.decimals,
+                            assetClass: feed.asset_class,
+                            updatedAt: new Date(Number(updatedAt) * 1000),
+                            error: null
+                        };
+                    } catch (error) {
+                        return {
+                            name: FEEDS[index].name,
+                            proxy: FEEDS[index].proxy_address,
+                            assetClass: FEEDS[index].asset_class,
+                            error: error.message
+                        };
+                    }
+                });
+
+                allPrices = results;
+                updateStats(blockNumber);
+                renderTable();
+
+                document.getElementById('status').textContent = 'Live';
+                document.getElementById('status').className = 'value';
+                document.getElementById('status').style.color = '#27ae60';
+
+            } catch (error) {
+                console.error('Error fetching prices:', error);
+                document.getElementById('status').textContent = 'Error';
+                document.getElementById('status').style.color = '#c33';
+            }
+        }
+
+        function updateStats(blockNumber) {
+            document.getElementById('totalFeeds').textContent = FEEDS.length;
+            document.getElementById('blockNumber').textContent = blockNumber.toString();
+            document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('priceTableBody');
+            const filteredPrices = allPrices.filter(item => {
+                const matchesFilter = currentFilter === 'all' || item.assetClass === currentFilter;
+                const matchesSearch = searchTerm === '' ||
+                    item.name.toLowerCase().includes(searchTerm.toLowerCase());
+                return matchesFilter && matchesSearch;
+            });
+
+            tbody.innerHTML = filteredPrices.map(item => {
+                const badgeClass = item.assetClass === 'Proof of Reserve' ? 'por' : item.assetClass.toLowerCase();
+                const priceDisplay = item.error ?
+                    `<span style="color: #c33;">Error</span>` :
+                    `$${item.price.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 8})}`;
+                const updateTime = item.updatedAt ? item.updatedAt.toLocaleString() : '--';
+
+                return `
+                    <tr>
+                        <td class="feed-name">${item.name}</td>
+                        <td class="price">${priceDisplay}</td>
+                        <td><span class="badge ${badgeClass}">${item.assetClass}</span></td>
+                        <td>${item.decimals || '--'}</td>
+                        <td class="timestamp">${updateTime}</td>
+                        <td class="address">${item.proxy}</td>
+                    </tr>
+                `;
+            }).join('');
+
+            document.getElementById('loadingIndicator').style.display = 'none';
+            document.getElementById('priceTable').style.display = 'table';
+        }
+
+        // Event listeners
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+                currentFilter = e.target.dataset.filter;
+                renderTable();
+            });
+        });
+
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            searchTerm = e.target.value;
+            renderTable();
+        });
+
+        // Initial load and auto-refresh every 5 seconds
+        fetchPrices();
+        setInterval(fetchPrices, 5000);
+    </script>
+</body>
+</html>
