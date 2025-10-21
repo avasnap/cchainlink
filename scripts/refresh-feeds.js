@@ -8,79 +8,66 @@ const https = require('https');
 const csv = require('csv-parser');
 const { createObjectCsvWriter } = require('csv-writer');
 
-const FEEDS_URL = 'https://data.chain.link/feeds';
-const AVALANCHE_CHAIN_ID = '43114';
+// Use direct JSON API instead of scraping HTML
+const FEEDS_API_URL = 'https://reference-data-directory.vercel.app/feeds-avalanche-mainnet.json';
 
 async function downloadFeedsData() {
-    console.log('📥 Downloading latest feed data from Chainlink...');
-    
+    console.log('📥 Fetching latest feed data from Chainlink API...');
+
     return new Promise((resolve, reject) => {
-        const file = fs.createWriteStream('./chainlink_feeds_new.html');
-        
-        https.get(FEEDS_URL, (response) => {
-            response.pipe(file);
-            
-            file.on('finish', () => {
-                file.close();
-                const stats = fs.statSync('./chainlink_feeds_new.html');
-                console.log(`✅ Downloaded ${(stats.size / 1024 / 1024).toFixed(1)}MB of feed data`);
-                resolve();
+        const url = new URL(FEEDS_API_URL);
+
+        https.get(url, (response) => {
+            let data = '';
+
+            response.on('data', chunk => {
+                data += chunk;
+            });
+
+            response.on('end', () => {
+                try {
+                    const feeds = JSON.parse(data);
+                    console.log(`✅ Fetched ${feeds.length} Avalanche feeds from API`);
+                    // Save raw data for debugging
+                    fs.writeFileSync('./feeds_data_new.json', JSON.stringify(feeds, null, 2));
+                    resolve(feeds);
+                } catch (error) {
+                    reject(new Error(`Failed to parse JSON: ${error.message}`));
+                }
             });
         }).on('error', (err) => {
-            fs.unlink('./chainlink_feeds_new.html', () => {}); // Delete file on error
             reject(err);
         });
     });
 }
 
-function extractAvalancheFeeds() {
-    console.log('🔍 Extracting Avalanche feeds from downloaded data...');
-    
-    const html = fs.readFileSync('./chainlink_feeds_new.html', 'utf8');
-    
-    // Find the __NEXT_DATA__ script tag
-    const scriptMatch = html.match(/<script id="__NEXT_DATA__" type="application\/json">(.*?)<\/script>/);
-    if (!scriptMatch) {
-        throw new Error('Could not find __NEXT_DATA__ in HTML');
+function extractAvalancheFeeds(allFeeds) {
+    console.log('🔍 Processing Avalanche feeds...');
+
+    if (!Array.isArray(allFeeds)) {
+        throw new Error('Expected feeds to be an array');
     }
-    
-    const nextData = JSON.parse(scriptMatch[1]);
-    const allFeeds = nextData.props.pageProps.allFeeds;
-    
-    // Save complete extracted data
-    fs.writeFileSync('./feeds_data_new.json', JSON.stringify(nextData, null, 2));
-    
-    // Filter for Avalanche C-Chain feeds
-    const avalancheFeeds = allFeeds.filter(feed => {
-        return feed.docs && feed.docs.some(doc => 
-            doc.networks && doc.networks.some(network => 
-                network.name === "Avalanche Mainnet" && 
-                network.chainId === AVALANCHE_CHAIN_ID
-            )
-        );
-    });
-    
-    console.log(`📊 Found ${avalancheFeeds.length} Avalanche feeds in latest data`);
-    
-    return avalancheFeeds.map(extractFeedInfo);
+
+    console.log(`📊 Found ${allFeeds.length} Avalanche feeds in API response`);
+
+    return allFeeds.map(extractFeedInfo);
 }
 
 function extractFeedInfo(feed) {
-    const network = feed.docs[0].networks.find(n => n.chainId === AVALANCHE_CHAIN_ID);
-    
+    // API returns feeds already filtered for Avalanche
     return {
-        name: feed.feedName || '',
-        contract_address: network.contractAddress || '',
-        proxy_address: network.proxyAddress || '',
-        deviation_threshold: feed.threshold || 0,
+        name: feed.name || feed.feedName || '',
+        contract_address: feed.contractAddress || feed.contract_address || '',
+        proxy_address: feed.proxyAddress || feed.proxy_address || feed.address || '',
+        deviation_threshold: feed.threshold || feed.deviationThreshold || feed.deviation_threshold || 0,
         heartbeat: feed.heartbeat || 86400,
         decimals: feed.decimals || 8,
-        asset_class: feed.assetClass || 'Unknown',
-        product_name: feed.productName || '',
-        ens: feed.ens || '',
-        path: feed.path || '',
-        base_asset: feed.baseAsset || '',
-        quote_asset: feed.quoteAsset || ''
+        asset_class: feed.assetClass || feed.feedCategory || feed.asset_class || 'Crypto',
+        product_name: feed.productName || feed.product_name || '',
+        ens: feed.ens || feed.feedId || '',
+        path: feed.path || feed.feedId || '',
+        base_asset: feed.baseAsset || feed.base_asset || '',
+        quote_asset: feed.quoteAsset || feed.quote_asset || ''
     };
 }
 
@@ -209,13 +196,13 @@ function updateReadme(stats) {
 
 async function refreshFeeds() {
     console.log('🔄 Starting Avalanche Chainlink feeds refresh...\n');
-    
+
     try {
-        // 1. Download latest data
-        await downloadFeedsData();
-        
-        // 2. Extract and filter feeds
-        const newFeeds = extractAvalancheFeeds();
+        // 1. Fetch latest data from API
+        const allFeeds = await downloadFeedsData();
+
+        // 2. Process feeds
+        const newFeeds = extractAvalancheFeeds(allFeeds);
         
         // 3. Compare and update
         const updateResult = await compareAndUpdate(newFeeds);
@@ -243,7 +230,7 @@ async function refreshFeeds() {
         process.exit(1);
     } finally {
         // Cleanup temporary files
-        ['./chainlink_feeds_new.html', './feeds_data_new.json'].forEach(file => {
+        ['./feeds_data_new.json'].forEach(file => {
             if (fs.existsSync(file)) {
                 fs.unlinkSync(file);
             }
