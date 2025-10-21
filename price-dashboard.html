@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chainlink Price Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.2/dist/ethers.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            color: #ffffff;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .dashboard {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            min-width: 150px;
+        }
+
+        .stat-card h3 {
+            font-size: 2rem;
+            color: #4ade80;
+            margin-bottom: 5px;
+        }
+
+        .stat-card p {
+            opacity: 0.8;
+            font-size: 0.9rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .price-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            padding: 20px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .price-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .price-card.loading {
+            opacity: 0.6;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 0.8; }
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .token-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .token-symbol {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #ffffff;
+        }
+
+        .token-name {
+            font-size: 0.9rem;
+            opacity: 0.7;
+        }
+
+        .update-status {
+            font-size: 0.8rem;
+            padding: 4px 8px;
+            border-radius: 20px;
+            background: rgba(74, 222, 128, 0.2);
+            color: #4ade80;
+        }
+
+        .price-display {
+            margin-bottom: 15px;
+        }
+
+        .current-price {
+            font-size: 2.2rem;
+            font-weight: bold;
+            color: #ffffff;
+            margin-bottom: 5px;
+        }
+
+        .price-change {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.9rem;
+        }
+
+        .arrow {
+            font-size: 1.2rem;
+        }
+
+        .arrow.up {
+            color: #4ade80;
+        }
+
+        .arrow.down {
+            color: #ef4444;
+        }
+
+        .previous-price {
+            color: #9ca3af;
+            font-size: 0.8rem;
+        }
+
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 0.8rem;
+            opacity: 0.7;
+        }
+
+        .time-ago {
+            color: #fbbf24;
+        }
+
+        .loading-spinner {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-left: 4px solid #4ade80;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-card {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #fca5a5;
+        }
+
+        .refresh-info {
+            text-align: center;
+            margin-top: 20px;
+            opacity: 0.7;
+            font-size: 0.9rem;
+        }
+
+        .controls {
+            max-width: 1400px;
+            margin: 0 auto 30px;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 25px;
+            padding: 10px 20px;
+            color: white;
+            font-size: 1rem;
+            min-width: 300px;
+        }
+
+        .search-box::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: #4ade80;
+            box-shadow: 0 0 10px rgba(74, 222, 128, 0.3);
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .filter-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .filter-btn.active {
+            background: #4ade80;
+            border-color: #4ade80;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats {
+                gap: 15px;
+            }
+            
+            .stat-card {
+                min-width: 120px;
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <div class="header">
+            <h1>🔗 Chainlink Price Dashboard</h1>
+            <p>Real-time price feeds from Avalanche network - Updates every 5 seconds</p>
+        </div>
+
+        <div class="stats">
+            <div class="stat-card">
+                <h3 id="totalFeeds">-</h3>
+                <p>Total Feeds</p>
+            </div>
+            <div class="stat-card">
+                <h3 id="successfulFeeds">-</h3>
+                <p>Active Feeds</p>
+            </div>
+            <div class="stat-card">
+                <h3 id="visibleFeeds">-</h3>
+                <p>Showing</p>
+            </div>
+            <div class="stat-card">
+                <h3 id="lastUpdate">-</h3>
+                <p>Last Update</p>
+            </div>
+        </div>
+
+        <div class="controls">
+            <input type="text" id="searchBox" class="search-box" placeholder="Search tokens (e.g. BTC, ETH, AVAX...)">
+            <div class="filter-buttons">
+                <button class="filter-btn active" data-filter="all">All</button>
+                <button class="filter-btn" data-filter="crypto">Crypto</button>
+                <button class="filter-btn" data-filter="usd">USD Pairs</button>
+                <button class="filter-btn" data-filter="major">Major</button>
+            </div>
+        </div>
+
+        <div id="loadingSpinner" class="loading-spinner">
+            <div class="spinner"></div>
+            <p>Loading price feeds...</p>
+        </div>
+
+        <div id="priceGrid" class="grid" style="display: none;">
+            <!-- Price cards will be dynamically generated here -->
+        </div>
+
+        <div class="refresh-info">
+            <p>🔄 Auto-refresh enabled | Next update in <span id="countdown">5</span> seconds</p>
+        </div>
+    </div>
+
+    <script>
+        // Avalanche mainnet RPC
+        const AVALANCHE_RPC = 'https://api.avax.network/ext/bc/C/rpc';
+        
+        // Chainlink AggregatorV3Interface ABI
+        const AGGREGATOR_ABI = [
+            {
+                "inputs": [],
+                "name": "latestRoundData",
+                "outputs": [
+                    {"internalType": "uint80", "name": "roundId", "type": "uint80"},
+                    {"internalType": "int256", "name": "answer", "type": "int256"},
+                    {"internalType": "uint256", "name": "startedAt", "type": "uint256"},
+                    {"internalType": "uint256", "name": "updatedAt", "type": "uint256"},
+                    {"internalType": "uint80", "name": "answeredInRound", "type": "uint80"}
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "decimals",
+                "outputs": [{"internalType": "uint8", "name": "", "type": "uint8"}],
+                "stateMutability": "view",
+                "type": "function"
+            }
+        ];
+
+        // Multicall3 contract ABI (deployed on most networks)
+        const MULTICALL_ABI = [
+            {
+                "inputs": [
+                    {
+                        "components": [
+                            {"internalType": "address", "name": "target", "type": "address"},
+                            {"internalType": "bytes", "name": "callData", "type": "bytes"}
+                        ],
+                        "internalType": "struct Multicall3.Call[]",
+                        "name": "calls",
+                        "type": "tuple[]"
+                    }
+                ],
+                "name": "aggregate",
+                "outputs": [
+                    {"internalType": "uint256", "name": "blockNumber", "type": "uint256"},
+                    {"internalType": "bytes[]", "name": "returnData", "type": "bytes[]"}
+                ],
+                "stateMutability": "payable",
+                "type": "function"
+            }
+        ];
+
+        // Multicall3 contract address (same on most networks)
+        const MULTICALL_ADDRESS = '0xcA11bde05977b3631167028862bE2a173976CA11';
+
+        // Global state
+        let provider;
+        let priceHistory = {};
+        let currentPrices = {};
+        let updateInterval;
+        let countdownInterval;
+        let isLoading = false;
+        let allPriceData = [];
+        let filteredData = [];
+        let currentFilter = 'all';
+        let searchTerm = '';
+
+        // All Avalanche price feeds - embedded directly to avoid CORS issues
+        const PRICE_FEEDS = [
+            {"name":"AAVE / USD","symbol":"AAVEUSD","proxyAddress":"0x3CA13391E9fb38a75330fb28f8cc2eB3D9ceceED","decimals":8,"baseAsset":"AAVE","quoteAsset":"USD"},
+            {"name":"ADA / USD","symbol":"ADAUSD","proxyAddress":"0x69C2703b8F1A85a2EF6aBDd085699a9F909BE053","decimals":8,"baseAsset":"ADA","quoteAsset":"USD"},
+            {"name":"ALPHA / USD","symbol":"ALPHAUSD","proxyAddress":"0x7B0ca9A6D03FE0467A31Ca850f5bcA51e027B3aF","decimals":8,"baseAsset":"ALPHA","quoteAsset":"USD"},
+            {"name":"ARB / USD","symbol":"ARBUSD","proxyAddress":"0xd99bcAdbE216D82f4B77eC54a99ea1b6bA96549b","decimals":8,"baseAsset":"ARB","quoteAsset":"USD"},
+            {"name":"AUSD / USD","symbol":"AUSDUSD","proxyAddress":"0x5C2d58627Fbe746f5ea24Ef6D618f09f8e3f0122","decimals":8,"baseAsset":"AUSD","quoteAsset":"USD"},
+            {"name":"AVAX / USD","symbol":"AVAXUSD","proxyAddress":"0x0A77230d17318075983913bC2145DB16C7366156","decimals":8,"baseAsset":"AVAX","quoteAsset":"USD"},
+            {"name":"AXS / USD","symbol":"AXSUSD","proxyAddress":"0x155835C5755205597d62703a5A0b37e57a26Ee5C","decimals":8,"baseAsset":"AXS","quoteAsset":"USD"},
+            {"name":"BAT / USD","symbol":"BATUSD","proxyAddress":"0xe89B3CE86D25599D1e615C0f6a353B4572FF868D","decimals":8,"baseAsset":"BAT","quoteAsset":"USD"},
+            {"name":"BEAM / USD","symbol":"BEAMUSD","proxyAddress":"0x3427232b88Ce4e7d62A03289247eE0cA5324f6ba","decimals":8,"baseAsset":"BEAM","quoteAsset":"USD"},
+            {"name":"BNB / USD","symbol":"BNBUSD","proxyAddress":"0xBb92195Ec95DE626346eeC8282D53e261dF95241","decimals":8,"baseAsset":"BNB","quoteAsset":"USD"},
+            {"name":"BTC / USD","symbol":"BTCUSD","proxyAddress":"0x2779D32d5166BAaa2B2b658333bA7e6Ec0C65743","decimals":8,"baseAsset":"BTC","quoteAsset":"USD"},
+            {"name":"CHF / USD","symbol":"CHFUSD","proxyAddress":"0xA418573AB5226711c8564Eeb449c3618ABFaf677","decimals":8,"baseAsset":"CHF","quoteAsset":"USD"},
+            {"name":"CHZ / USD","symbol":"CHZUSD","proxyAddress":"0xC4D7270aCc921DE5A17452437257f075C1298eB3","decimals":8,"baseAsset":"CHZ","quoteAsset":"USD"},
+            {"name":"COMP / USD","symbol":"COMPUSD","proxyAddress":"0x9D6AA0AC8c4818433bEA7a74F49C73B57BcEC4Ec","decimals":8,"baseAsset":"COMP","quoteAsset":"USD"},
+            {"name":"COQ / USD","symbol":"COQUSD","proxyAddress":"0x5B4712ce553E94d9b22bA3CfA10CB6F32fb828E0","decimals":18,"baseAsset":"COQ","quoteAsset":"USD"},
+            {"name":"CRV / USD","symbol":"CRVUSD","proxyAddress":"0x7CF8A6090A9053B01F3DF4D4e6CfEdd8c90d9027","decimals":8,"baseAsset":"CRV","quoteAsset":"USD"},
+            {"name":"CVX / USD","symbol":"CVXUSD","proxyAddress":"0x52F8026423B5E04FdD9E4b5725B68230b71D019b","decimals":8,"baseAsset":"CVX","quoteAsset":"USD"},
+            {"name":"CZK / USD","symbol":"CZKUSD","proxyAddress":"0x545d17579D0F7b422Cd647B9E6a6FA4b45F6e1C5","decimals":8,"baseAsset":"CZK","quoteAsset":"USD"},
+            {"name":"Calculated SAVAX / USD","symbol":"CALCULATEDSAVAXUSD","proxyAddress":"0x2854Ca10a54800e15A2a25cFa52567166434Ff0a","decimals":18,"baseAsset":"SAVAX","quoteAsset":"USD"},
+            {"name":"DAI / USD","symbol":"DAIUSD","proxyAddress":"0x51D7180edA2260cc4F6e4EebB82FEF5c3c2B8300","decimals":8,"baseAsset":"DAI","quoteAsset":"USD"},
+            {"name":"DOT / USD","symbol":"DOTUSD","proxyAddress":"0xD73a74314AcCb53b30cAfDA0cb61c9772B57C4a2","decimals":8,"baseAsset":"DOT","quoteAsset":"USD"},
+            {"name":"ETH / USD","symbol":"ETHUSD","proxyAddress":"0x976B3D034E162d8bD72D6b9C989d545b839003b0","decimals":8,"baseAsset":"ETH","quoteAsset":"USD"},
+            {"name":"EUR / USD","symbol":"EURUSD","proxyAddress":"0x192f2DBA961Bb0277520C082d6bfa87D5961333E","decimals":8,"baseAsset":"EUR","quoteAsset":"USD"},
+            {"name":"EURC / USD","symbol":"EURCUSD","proxyAddress":"0x3368310bC4AeE5D96486A73bae8E6b49FcDE62D3","decimals":8,"baseAsset":"EURC","quoteAsset":"USD"},
+            {"name":"FIL / USD","symbol":"FILUSD","proxyAddress":"0x2F194315f122d374a27973e259783d5C864A5bf6","decimals":8,"baseAsset":"FIL","quoteAsset":"USD"},
+            {"name":"FRAX / USD","symbol":"FRAXUSD","proxyAddress":"0xbBa56eF1565354217a3353a466edB82E8F25b08e","decimals":8,"baseAsset":"FRAX","quoteAsset":"USD"},
+            {"name":"FXS / USD","symbol":"FXSUSD","proxyAddress":"0x12Af94c3716bbf339Aa26BfD927DDdE63B27D50C","decimals":8,"baseAsset":"FXS","quoteAsset":"USD"},
+            {"name":"GHO / USD","symbol":"GHOUSD","proxyAddress":"0x076DE3812BDbdAe1330064fc01Adf7f4EAa123f3","decimals":8,"baseAsset":"GHO","quoteAsset":"GHO"},
+            {"name":"GMX / USD","symbol":"GMXUSD","proxyAddress":"0x3F968A21647d7ca81Fb8A5b69c0A452701d5DCe8","decimals":8,"baseAsset":"GMX","quoteAsset":"USD"},
+            {"name":"JOE / USD","symbol":"JOEUSD","proxyAddress":"0x02D35d3a8aC3e1626d3eE09A78Dd87286F5E8e3a","decimals":8,"baseAsset":"JOE","quoteAsset":"USD"},
+            {"name":"JPY / USD","symbol":"JPYUSD","proxyAddress":"0xf8B283aD4d969ECFD70005714DD5910160565b94","decimals":8,"baseAsset":"JPY","quoteAsset":"USD"},
+            {"name":"KNC / USD","symbol":"KNCUSD","proxyAddress":"0x9df2195dc96e6Ef983B1aAC275649F3f28F82Aa1","decimals":8,"baseAsset":"KNC","quoteAsset":"USD"},
+            {"name":"LINK / AVAX","symbol":"LINKAVAX","proxyAddress":"0x1b8a25F73c9420dD507406C3A3816A276b62f56a","decimals":18,"baseAsset":"LINK","quoteAsset":"AVAX"},
+            {"name":"LINK / USD","symbol":"LINKUSD","proxyAddress":"0x49ccd9ca821EfEab2b98c60dC60F518E765EDe9a","decimals":8,"baseAsset":"LINK","quoteAsset":"USD"},
+            {"name":"MANA / USD","symbol":"MANAUSD","proxyAddress":"0x774f067083f23cAB866310489419C884a6Dc00a8","decimals":8,"baseAsset":"MANA","quoteAsset":"USD"},
+            {"name":"MKR / USD","symbol":"MKRUSD","proxyAddress":"0x3E54eB0475051401D093702A5DB84EFa1Ab77b14","decimals":8,"baseAsset":"MKR","quoteAsset":"USD"},
+            {"name":"NEAR / USD","symbol":"NEARUSD","proxyAddress":"0x7FDE7f51dc2580dd051e17A333E28CDC8176da0A","decimals":8,"baseAsset":"NEAR","quoteAsset":"USD"},
+            {"name":"POL / USD","symbol":"POLUSD","proxyAddress":"0x7B0e7d292d414788B080EfCa58b04B6372789639","decimals":8,"baseAsset":"POL","quoteAsset":"USD"},
+            {"name":"QI / USD","symbol":"QIUSD","proxyAddress":"0x36E039e6391A5E7A7267650979fdf613f659be5D","decimals":8,"baseAsset":"QI","quoteAsset":"USD"},
+            {"name":"SAND / USD","symbol":"SANDUSD","proxyAddress":"0x6f2A1D4014FED967172FC7caCf7a6e04Cf02752e","decimals":8,"baseAsset":"SAND","quoteAsset":"USD"},
+            {"name":"SGD / USD","symbol":"SGDUSD","proxyAddress":"0x05950959B6d876ae0fed1BBe5Caa2d74d8659D59","decimals":8,"baseAsset":"SGD","quoteAsset":"USD"},
+            {"name":"SHIB / USD","symbol":"SHIBUSD","proxyAddress":"0x7Ee401373A92f885a7C3A53CF46dbe661eaFb1C0","decimals":18,"baseAsset":"SHIB","quoteAsset":"USD"},
+            {"name":"SNX / USD","symbol":"SNXUSD","proxyAddress":"0x01752eAAB988ECb0ceBa2C8FC97c4f1d38Bf246D","decimals":8,"baseAsset":"SNX","quoteAsset":"USD"},
+            {"name":"SPELL / USD","symbol":"SPELLUSD","proxyAddress":"0x4F3ddF9378a4865cf4f28BE51E10AECb83B7daeE","decimals":8,"baseAsset":"SPELL","quoteAsset":"USD"},
+            {"name":"SUSHI / USD","symbol":"SUSHIUSD","proxyAddress":"0x449A373A090d8A1e5F74c63Ef831Ceff39E94563","decimals":8,"baseAsset":"SUSHI","quoteAsset":"USD"},
+            {"name":"SolvBTC.BBN / SolvBTC Exchange Rate","symbol":"SOLVBTC.BBNSOLVBTCEXCHANGERATE","proxyAddress":"0xc0990e0989141a5F535a2a24b6Af65618CC83d32","decimals":18,"baseAsset":"SolvBTC.BBN","quoteAsset":"SolvBTC"},
+            {"name":"TRY / USD","symbol":"TRYUSD","proxyAddress":"0xA61bF273688Ea095b5e4c11f1AF5E763F7aEEE91","decimals":8,"baseAsset":"TRY","quoteAsset":"USD"},
+            {"name":"TUSD / USD","symbol":"TUSDUSD","proxyAddress":"0x9Cf3Ef104A973b351B2c032AA6793c3A6F76b448","decimals":8,"baseAsset":"TUSD","quoteAsset":"USD"},
+            {"name":"UNI / USD","symbol":"UNIUSD","proxyAddress":"0x9a1372f9b1B71B3A5a72E092AE67E172dBd7Daaa","decimals":8,"baseAsset":"UNI","quoteAsset":"USD"},
+            {"name":"USDC / USD","symbol":"USDCUSD","proxyAddress":"0xF096872672F44d6EBA71458D74fe67F9a77a23B9","decimals":8,"baseAsset":"USDC","quoteAsset":"USD"},
+            {"name":"USDT / USD","symbol":"USDTUSD","proxyAddress":"0xEBE676ee90Fe1112671f19b6B7459bC678B67e8a","decimals":8,"baseAsset":"USDT","quoteAsset":"USD"},
+            {"name":"WBTC / USD","symbol":"WBTCUSD","proxyAddress":"0x86442E3a98558357d46E6182F4b262f76c4fa26F","decimals":8,"baseAsset":"WBTC","quoteAsset":"USD"},
+            {"name":"WOO / ETH","symbol":"WOOETH","proxyAddress":"0xfAa665F5a0e13beea63b6DfF601DD634959690Df","decimals":18,"baseAsset":"WOO","quoteAsset":"ETH"},
+            {"name":"WSTETH / ETH","symbol":"WSTETHETH","proxyAddress":"0xCF60B4E089eA1ABA29C01b017b38c2f7D69Eb36B","decimals":18,"baseAsset":"WSTETH","quoteAsset":"ETH"},
+            {"name":"WSTETH / USD","symbol":"WSTETHUSD","proxyAddress":"0xB5f607A2bb2C950053F4DA1F535180e5902EAD16","decimals":8,"baseAsset":"WSTETH","quoteAsset":"USD"},
+            {"name":"XAG / USD","symbol":"XAGUSD","proxyAddress":"0xA771e0D1e9E1eCc07C56CC38240779E54337d682","decimals":8,"baseAsset":"XAG","quoteAsset":"USD"},
+            {"name":"XAU / USD","symbol":"XAUUSD","proxyAddress":"0x1F41EF93dece881Ad0b98082B2d44D3f6F0C515B","decimals":8,"baseAsset":"XAU","quoteAsset":"USD"},
+            {"name":"YFI / USD","symbol":"YFIUSD","proxyAddress":"0x28043B1Ebd41860B93EC1F1eC19560760B6dB556","decimals":8,"baseAsset":"YFI","quoteAsset":"USD"},
+            {"name":"deUSD / USD","symbol":"DEUSDUSD","proxyAddress":"0x7E77D9F06056017334e26bEd92176222169DE6C1","decimals":8,"baseAsset":"DEUSD","quoteAsset":"USD"},
+            {"name":"solvBTC / BTC","symbol":"SOLVBTCBTC","proxyAddress":"0x5ff6c083B7B2BD0D61beB7173B3757e1a1e6E1C6","decimals":8,"baseAsset":"solvBTC","quoteAsset":"BTC"},
+            {"name":"wstETH-stETH Exchange Rate","symbol":"WSTETHSTETH","proxyAddress":"0x84FF93CAD57DcD39b21895171D30A7A0e7851C75","decimals":18,"baseAsset":"wstETH","quoteAsset":"stETH"}
+        ];
+
+        // Initialize the application
+        async function init() {
+            try {
+                provider = new ethers.JsonRpcProvider(AVALANCHE_RPC);
+                setupEventListeners();
+                await loadPrices();
+                startAutoRefresh();
+            } catch (error) {
+                console.error('Failed to initialize:', error);
+                showError('Failed to connect to Avalanche network');
+            }
+        }
+
+        // Load price data using multicall for efficiency
+        async function loadPrices() {
+            if (isLoading) return;
+            
+            isLoading = true;
+            updateStats(PRICE_FEEDS.length, 0, 0, 'Loading...');
+            
+            try {
+                const results = await fetchAllPrices();
+                allPriceData = results.successful;
+                applyFilters(); // This will render the cards and update stats
+                
+                // Hide loading spinner and show grid
+                document.getElementById('loadingSpinner').style.display = 'none';
+                document.getElementById('priceGrid').style.display = 'grid';
+                
+            } catch (error) {
+                console.error('Error loading prices:', error);
+                showError('Failed to load price data');
+            } finally {
+                isLoading = false;
+            }
+        }
+
+        // Fetch all prices using multicall for efficiency
+        async function fetchAllPrices() {
+            try {
+                const multicall = new ethers.Contract(MULTICALL_ADDRESS, MULTICALL_ABI, provider);
+                
+                // Prepare multicall data for latestRoundData calls
+                const calls = PRICE_FEEDS.map(feed => {
+                    const iface = new ethers.Interface(AGGREGATOR_ABI);
+                    const callData = iface.encodeFunctionData('latestRoundData');
+                    
+                    return {
+                        target: feed.proxyAddress,
+                        callData: callData
+                    };
+                });
+                
+                console.log(`Making multicall with ${calls.length} price feed calls...`);
+                
+                // Execute multicall (use callStatic for read-only call)
+                const result = await multicall.aggregate.staticCall(calls);
+                const [blockNumber, returnData] = result;
+                
+                console.log(`Multicall successful! Block: ${blockNumber}`);
+                
+                // Decode results
+                const successful = [];
+                const failed = [];
+                const iface = new ethers.Interface(AGGREGATOR_ABI);
+                
+                returnData.forEach((data, index) => {
+                    try {
+                        const feed = PRICE_FEEDS[index];
+                        
+                        // Decode the return data
+                        const decoded = iface.decodeFunctionResult('latestRoundData', data);
+                        const [roundId, answer, startedAt, updatedAt, answeredInRound] = decoded;
+                        
+                        const price = Number(answer) / Math.pow(10, feed.decimals);
+                        const updatedAtMs = Number(updatedAt) * 1000;
+                        
+                        // Store previous price for comparison
+                        const previousPrice = currentPrices[feed.symbol];
+                        currentPrices[feed.symbol] = price;
+                        
+                        successful.push({
+                            ...feed,
+                            price: price,
+                            previousPrice: previousPrice,
+                            roundId: roundId.toString(),
+                            updatedAt: updatedAtMs,
+                            timeAgo: getTimeAgo(updatedAtMs)
+                        });
+                        
+                    } catch (error) {
+                        failed.push({
+                            feed: PRICE_FEEDS[index],
+                            error: error
+                        });
+                        console.error(`Failed to decode ${PRICE_FEEDS[index].symbol}:`, error);
+                    }
+                });
+                
+                console.log(`Successfully processed ${successful.length} feeds, ${failed.length} failed`);
+                return { successful, failed };
+                
+            } catch (error) {
+                console.error('Multicall failed, falling back to individual calls:', error);
+                return await fetchAllPricesIndividually();
+            }
+        }
+
+        // Fallback: Fetch prices individually (original method)
+        async function fetchAllPricesIndividually() {
+            const promises = PRICE_FEEDS.map(feed => fetchPriceDataIndividually(feed));
+            const results = await Promise.allSettled(promises);
+            
+            const successful = [];
+            const failed = [];
+            
+            results.forEach((result, index) => {
+                if (result.status === 'fulfilled') {
+                    successful.push(result.value);
+                } else {
+                    failed.push({
+                        feed: PRICE_FEEDS[index],
+                        error: result.reason
+                    });
+                    console.error(`Failed to fetch ${PRICE_FEEDS[index].symbol}:`, result.reason);
+                }
+            });
+            
+            return { successful, failed };
+        }
+
+        // Fetch price data for a single feed (fallback method)
+        async function fetchPriceDataIndividually(feed) {
+            const contract = new ethers.Contract(feed.proxyAddress, AGGREGATOR_ABI, provider);
+            
+            const roundData = await contract.latestRoundData();
+            
+            const price = Number(roundData.answer) / Math.pow(10, feed.decimals);
+            const updatedAt = Number(roundData.updatedAt) * 1000; // Convert to milliseconds
+            
+            // Store previous price for comparison
+            const previousPrice = currentPrices[feed.symbol];
+            currentPrices[feed.symbol] = price;
+            
+            return {
+                ...feed,
+                price: price,
+                previousPrice: previousPrice,
+                roundId: roundData.roundId.toString(),
+                updatedAt: updatedAt,
+                timeAgo: getTimeAgo(updatedAt)
+            };
+        }
+
+        // Render price cards
+        function renderPriceCards(results) {
+            const grid = document.getElementById('priceGrid');
+            
+            grid.innerHTML = results.successful.map(data => {
+                const priceChange = getPriceChange(data.price, data.previousPrice);
+                const priceChangeClass = priceChange.direction;
+                const arrow = priceChange.direction === 'up' ? '↗' : priceChange.direction === 'down' ? '↘' : '→';
+                
+                return `
+                    <div class="price-card" data-symbol="${data.symbol}">
+                        <div class="card-header">
+                            <div class="token-info">
+                                <div class="token-symbol">${data.symbol}</div>
+                                <div class="token-name">${data.name}</div>
+                            </div>
+                            <div class="update-status">Live</div>
+                        </div>
+                        
+                        <div class="price-display">
+                            <div class="current-price">${formatPrice(data.price, data.quoteAsset)}</div>
+                            ${data.previousPrice ? `
+                                <div class="price-change">
+                                    <span class="arrow ${priceChangeClass}">${arrow}</span>
+                                    <span>Previous: </span>
+                                    <span class="previous-price">${formatPrice(data.previousPrice, data.quoteAsset)}</span>
+                                </div>
+                            ` : ''}
+                        </div>
+                        
+                        <div class="card-footer">
+                            <span class="time-ago">${data.timeAgo}</span>
+                            <span>Round ${data.roundId.slice(-6)}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            // Add failed feeds as error cards
+            results.failed.forEach(failed => {
+                grid.innerHTML += `
+                    <div class="price-card error-card">
+                        <div class="card-header">
+                            <div class="token-info">
+                                <div class="token-symbol">${failed.feed.symbol}</div>
+                                <div class="token-name">${failed.feed.name}</div>
+                            </div>
+                            <div class="update-status" style="background: rgba(239, 68, 68, 0.2); color: #ef4444;">Error</div>
+                        </div>
+                        
+                        <div class="price-display">
+                            <div class="current-price">Failed to load</div>
+                            <div class="price-change">
+                                <span style="color: #fca5a5; font-size: 0.8rem;">Connection error</span>
+                            </div>
+                        </div>
+                        
+                        <div class="card-footer">
+                            <span class="time-ago">-</span>
+                            <span>-</span>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // Get price change direction
+        function getPriceChange(currentPrice, previousPrice) {
+            if (!previousPrice) return { direction: 'same', change: 0 };
+            
+            const change = currentPrice - previousPrice;
+            const direction = change > 0 ? 'up' : change < 0 ? 'down' : 'same';
+            
+            return { direction, change };
+        }
+
+        // Format price with appropriate decimal places and currency symbol
+        function formatPrice(price, quoteAsset) {
+            let formattedPrice;
+            
+            // For very small numbers, use subscript notation
+            if (price > 0 && price < 0.01) {
+                formattedPrice = formatSmallPrice(price);
+            } else if (price >= 1000) {
+                formattedPrice = price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            } else if (price >= 1) {
+                formattedPrice = price.toFixed(4);
+            } else if (price >= 0.01) {
+                formattedPrice = price.toFixed(4);
+            } else {
+                formattedPrice = price.toFixed(8);
+            }
+            
+            // Add appropriate currency symbol based on quote asset
+            return getCurrencySymbol(quoteAsset) + formattedPrice;
+        }
+
+        // Format small prices with subscript notation (e.g., 0.0₍₆₎531 for 0.0000000531)
+        function formatSmallPrice(price) {
+            if (price === 0) return '0';
+            
+            // Convert to string and find leading zeros
+            const str = price.toFixed(20).replace(/\.?0+$/, ''); // Remove trailing zeros
+            const decimalIndex = str.indexOf('.');
+            
+            if (decimalIndex === -1) return price.toString();
+            
+            let leadingZeros = 0;
+            let significantStart = -1;
+            
+            // Count leading zeros after decimal point
+            for (let i = decimalIndex + 1; i < str.length; i++) {
+                if (str[i] === '0') {
+                    leadingZeros++;
+                } else {
+                    significantStart = i;
+                    break;
+                }
+            }
+            
+            // If we have 3 or more leading zeros, use subscript notation
+            if (leadingZeros >= 3) {
+                // Extract significant digits (3-4 digits)
+                const significantDigits = str.substring(significantStart, Math.min(significantStart + 4, str.length));
+                const subscript = getSubscriptNumber(leadingZeros);
+                return `0.0${subscript}${significantDigits}`;
+            }
+            
+            // Otherwise use normal formatting
+            return price.toFixed(Math.min(6, leadingZeros + 3));
+        }
+
+        // Convert number to subscript using Unicode subscript characters
+        function getSubscriptNumber(num) {
+            const subscriptMap = {
+                '0': '₀', '1': '₁', '2': '₂', '3': '₃', '4': '₄',
+                '5': '₅', '6': '₆', '7': '₇', '8': '₈', '9': '₉'
+            };
+            
+            return num.toString().split('').map(digit => subscriptMap[digit] || digit).join('');
+        }
+
+        // Get currency symbol based on quote asset
+        function getCurrencySymbol(quoteAsset) {
+            const symbols = {
+                'USD': '$',
+                'EUR': '€',
+                'JPY': '¥',
+                'CHF': 'CHF ',
+                'SGD': 'S$',
+                'TRY': '₺',
+                'CZK': 'Kč ',
+                'ETH': 'Ξ',
+                'BTC': '₿',
+                'AVAX': '',  // No symbol, just show ratio
+                'GHO': '', // No symbol for GHO
+                'SolvBTC': '', // No symbol for exchange rates
+                'stETH': '' // No symbol for exchange rates
+            };
+            
+            return symbols[quoteAsset] || '';
+        }
+
+        // Get human-readable time ago
+        function getTimeAgo(timestamp) {
+            const now = Date.now();
+            const diff = now - timestamp;
+            const seconds = Math.floor(diff / 1000);
+            const minutes = Math.floor(seconds / 60);
+            const hours = Math.floor(minutes / 60);
+            
+            if (seconds < 60) return `${seconds}s ago`;
+            if (minutes < 60) return `${minutes}m ago`;
+            if (hours < 24) return `${hours}h ago`;
+            return new Date(timestamp).toLocaleDateString();
+        }
+
+        // Update statistics
+        function updateStats(total, successful, visible, lastUpdate) {
+            document.getElementById('totalFeeds').textContent = total;
+            document.getElementById('successfulFeeds').textContent = successful;
+            document.getElementById('visibleFeeds').textContent = visible;
+            document.getElementById('lastUpdate').textContent = lastUpdate;
+        }
+
+        // Filter and search functionality
+        function applyFilters() {
+            filteredData = allPriceData.filter(data => {
+                // Apply search filter
+                const matchesSearch = searchTerm === '' || 
+                    data.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    data.symbol.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    (data.baseAsset && data.baseAsset.toLowerCase().includes(searchTerm.toLowerCase()));
+                
+                // Apply category filter
+                let matchesFilter = true;
+                switch (currentFilter) {
+                    case 'crypto':
+                        matchesFilter = data.symbol.includes('USD');
+                        break;
+                    case 'usd':
+                        matchesFilter = data.name.includes('USD');
+                        break;
+                    case 'major':
+                        const majorTokens = ['BTC', 'ETH', 'AVAX', 'LINK', 'USDT', 'USDC'];
+                        matchesFilter = majorTokens.some(token => data.symbol.includes(token));
+                        break;
+                    case 'all':
+                    default:
+                        matchesFilter = true;
+                }
+                
+                return matchesSearch && matchesFilter;
+            });
+            
+            renderPriceCards({ successful: filteredData, failed: [] });
+            updateStats(PRICE_FEEDS.length, allPriceData.length, filteredData.length, new Date().toLocaleTimeString());
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Search functionality
+            const searchBox = document.getElementById('searchBox');
+            searchBox.addEventListener('input', (e) => {
+                searchTerm = e.target.value;
+                applyFilters();
+            });
+
+            // Filter buttons
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    // Update active button
+                    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                    e.target.classList.add('active');
+                    
+                    currentFilter = e.target.dataset.filter;
+                    applyFilters();
+                });
+            });
+        }
+
+        // Start auto-refresh
+        function startAutoRefresh() {
+            let countdown = 5;
+            
+            // Update countdown
+            countdownInterval = setInterval(() => {
+                countdown--;
+                document.getElementById('countdown').textContent = countdown;
+                
+                if (countdown <= 0) {
+                    countdown = 5;
+                    document.getElementById('countdown').textContent = countdown;
+                }
+            }, 1000);
+            
+            // Refresh prices every 5 seconds
+            updateInterval = setInterval(async () => {
+                await loadPrices();
+            }, 5000);
+        }
+
+        // Show error message
+        function showError(message) {
+            const grid = document.getElementById('priceGrid');
+            grid.innerHTML = `
+                <div class="price-card error-card" style="grid-column: 1/-1;">
+                    <div class="card-header">
+                        <div class="token-info">
+                            <div class="token-symbol">⚠️ Error</div>
+                        </div>
+                    </div>
+                    <div class="price-display">
+                        <div class="current-price" style="font-size: 1.2rem;">${message}</div>
+                        <div class="price-change">
+                            <span style="color: #fca5a5;">Please check your connection and try again</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('loadingSpinner').style.display = 'none';
+            document.getElementById('priceGrid').style.display = 'grid';
+        }
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            if (updateInterval) clearInterval(updateInterval);
+            if (countdownInterval) clearInterval(countdownInterval);
+        });
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

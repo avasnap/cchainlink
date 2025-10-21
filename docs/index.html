@@ -203,19 +203,9 @@
             text-transform: uppercase;
         }
 
-        .badge.crypto {
+        .badge.price {
             background: #e3f2fd;
             color: #1976d2;
-        }
-
-        .badge.fiat {
-            background: #f3e5f5;
-            color: #7b1fa2;
-        }
-
-        .badge.commodity {
-            background: #fff3e0;
-            color: #f57c00;
         }
 
         .badge.por {
@@ -306,10 +296,8 @@
                 <input type="text" id="searchInput" placeholder="Search by name or symbol..." />
             </div>
             <button class="filter-btn active" data-filter="all">All</button>
-            <button class="filter-btn" data-filter="Crypto">Crypto</button>
-            <button class="filter-btn" data-filter="Fiat">Fiat</button>
-            <button class="filter-btn" data-filter="Proof of Reserve">PoR</button>
-            <button class="filter-btn" data-filter="Commodity">Commodity</button>
+            <button class="filter-btn" data-filter="Price Feed">Price Feeds</button>
+            <button class="filter-btn" data-filter="Proof of Reserve">Proof of Reserve</button>
         </div>
 
         <div class="table-container">
@@ -456,7 +444,7 @@
             });
 
             tbody.innerHTML = filteredPrices.map(item => {
-                const badgeClass = item.assetClass === 'Proof of Reserve' ? 'por' : item.assetClass.toLowerCase();
+                const badgeClass = item.assetClass === 'Proof of Reserve' ? 'por' : 'price';
 
                 // Parse feed name to get quote currency and type
                 let priceDisplay;

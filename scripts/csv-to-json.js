@@ -15,12 +15,22 @@ async function convertCsvToJson() {
         fs.createReadStream('./avalanche_chainlink_feeds.csv')
             .pipe(csv())
             .on('data', (row) => {
+                // Categorize feeds: Proof of Reserve or Price Feed
+                let category = 'Price Feed';
+                const nameLower = row.name.toLowerCase();
+
+                if (nameLower.includes('proof of reserve') ||
+                    nameLower.includes('reserves') ||
+                    nameLower.includes(' por')) {
+                    category = 'Proof of Reserve';
+                }
+
                 // Only include the fields needed by the HTML page
                 feeds.push({
                     name: row.name,
                     proxy_address: row.proxy_address,
                     decimals: parseInt(row.decimals) || 8,
-                    asset_class: row.asset_class || 'Crypto'
+                    asset_class: category
                 });
             })
             .on('end', () => {
