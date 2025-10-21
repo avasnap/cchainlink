@@ -34,10 +34,13 @@ async function convertCsvToJson() {
                 });
             })
             .on('end', () => {
+                // Sort feeds alphabetically by name
+                feeds.sort((a, b) => a.name.localeCompare(b.name));
+
                 // Write to docs folder for GitHub Pages
                 const outputPath = './docs/feeds.json';
                 fs.writeFileSync(outputPath, JSON.stringify(feeds, null, 2));
-                console.log(`✅ Generated ${outputPath} with ${feeds.length} feeds`);
+                console.log(`✅ Generated ${outputPath} with ${feeds.length} feeds (sorted by name)`);
                 resolve(feeds);
             })
             .on('error', reject);
