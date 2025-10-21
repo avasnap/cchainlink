@@ -414,7 +414,6 @@
                 });
 
                 allPrices = results;
-                console.log('Sample price data:', results.slice(0, 2));
                 updateStats(blockNumber);
                 renderTable();
 
@@ -441,17 +440,6 @@
                 const matchesFilter = currentFilter === 'all' || item.assetClass === currentFilter;
                 const matchesSearch = searchTerm === '' ||
                     item.name.toLowerCase().includes(searchTerm.toLowerCase());
-
-                // Debug logging
-                if (currentFilter !== 'all' && allPrices.indexOf(item) === 0) {
-                    console.log('Filter debug:', {
-                        currentFilter,
-                        itemAssetClass: item.assetClass,
-                        matchesFilter,
-                        sample: item.name
-                    });
-                }
-
                 return matchesFilter && matchesSearch;
             });
 
