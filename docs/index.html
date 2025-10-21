@@ -516,9 +516,50 @@
 
             tbody.innerHTML = filteredPrices.map(item => {
                 const badgeClass = item.assetClass === 'Proof of Reserve' ? 'por' : item.assetClass.toLowerCase();
-                const priceDisplay = item.error ?
-                    `<span style="color: #c33;">Error</span>` :
-                    `$${item.price.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 8})}`;
+
+                // Parse feed name to get quote currency and type
+                let priceDisplay;
+                if (item.error) {
+                    priceDisplay = `<span style="color: #c33;">Error</span>`;
+                } else {
+                    // Determine the quote currency/unit from feed name
+                    let quoteCurrency = '';
+                    let prefix = '';
+
+                    if (item.name.includes('Exchange Rate')) {
+                        // Exchange rates - no currency symbol, just the ratio
+                        priceDisplay = item.price.toLocaleString('en-US', {minimumFractionDigits: 4, maximumFractionDigits: 8});
+                    } else if (item.name.includes('Proof of Reserves') || item.name.includes('Reserves')) {
+                        // Proof of Reserve - extract token symbol and show amount
+                        let tokenSymbol = '';
+                        const porMatch = item.name.match(/^([A-Z0-9.]+(?:\.e)?)\s/i);
+                        if (porMatch) {
+                            tokenSymbol = ' ' + porMatch[1];
+                        }
+                        priceDisplay = item.price.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 8}) + tokenSymbol;
+                    } else if (item.name.includes('Emergency Count')) {
+                        // Count value - just the number
+                        priceDisplay = item.price.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0}) + ' events';
+                    } else {
+                        // Price feeds - extract quote currency
+                        const match = item.name.match(/\/\s*([A-Z]+)\s*$/);
+                        if (match) {
+                            quoteCurrency = match[1];
+                            // Add appropriate symbol/prefix
+                            if (quoteCurrency === 'USD') {
+                                prefix = '$';
+                            } else {
+                                prefix = '';
+                                quoteCurrency = ' ' + quoteCurrency;
+                            }
+                            priceDisplay = prefix + item.price.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 8}) + quoteCurrency;
+                        } else {
+                            // Fallback for unexpected format
+                            priceDisplay = item.price.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 8});
+                        }
+                    }
+                }
+
                 const updateTime = item.updatedAt ? item.updatedAt.toLocaleString() : '--';
 
                 return `
