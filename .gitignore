@@ -4,8 +4,10 @@ package-lock.json
 
 # Environment variables and secrets
 .env
-.env.*
-*.env
+.env.local
+.env.development
+.env.production
+!.env.example
 
 # Logs
 logs/
@@ -39,3 +41,15 @@ Thumbs.db
 coverage/
 .nyc_output/
 test-results/
+
+# Go specific
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+go.sum
+multicall-prices
+vendor/
