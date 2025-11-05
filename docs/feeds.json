@@ -444,6 +444,12 @@
     "asset_class": "Price Feed"
   },
   {
+    "name": "SYRUPUSDT / USD Exchange Rate",
+    "proxy_address": "0x908C8195E085b3290d335014B94E6F1C886a889F",
+    "decimals": 18,
+    "asset_class": "Price Feed"
+  },
+  {
     "name": "TRY / USD",
     "proxy_address": "0xA61bF273688Ea095b5e4c11f1AF5E763F7aEEE91",
     "decimals": 8,
@@ -486,7 +492,7 @@
     "asset_class": "Proof of Reserve"
   },
   {
-    "name": "UST / USD",
+    "name": "USTC / USD",
     "proxy_address": "0xf58B78581c480caFf667C63feDd564eCF01Ef86b",
     "decimals": 8,
     "asset_class": "Price Feed"
