@@ -528,6 +528,12 @@
     "asset_class": "Price Feed"
   },
   {
+    "name": "WSRUSD / RUSD Exchange Rate",
+    "proxy_address": "0x1f9789982b7c72FFFa1874f0017F7de9BBdA0901",
+    "decimals": 18,
+    "asset_class": "Price Feed"
+  },
+  {
     "name": "WSTETH / ETH",
     "proxy_address": "0xCF60B4E089eA1ABA29C01b017b38c2f7D69Eb36B",
     "decimals": 18,
