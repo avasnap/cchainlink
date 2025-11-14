@@ -300,12 +300,6 @@
     "asset_class": "Price Feed"
   },
   {
-    "name": "MKR / USD",
-    "proxy_address": "0x3E54eB0475051401D093702A5DB84EFa1Ab77b14",
-    "decimals": 8,
-    "asset_class": "Price Feed"
-  },
-  {
     "name": "NEAR / USD",
     "proxy_address": "0x7FDE7f51dc2580dd051e17A333E28CDC8176da0A",
     "decimals": 8,
