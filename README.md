@@ -205,9 +205,10 @@ Fetched all data in 2044ms at block 65813232
 - **URL:** `https://api.avax.network/ext/bc/C/rpc`
 
 ### Performance
-- **Single Multicall3 transaction** fetches all 101 data feeds
+- **Single Multicall3 call** fetches all 101 data feeds
 - **~2 seconds** typical response time (including network latency)
-- **Gas efficient** - 1 transaction vs 101 individual calls
+- **Efficient** - 1 RPC request vs 101 individual calls
+- **No gas cost** - read-only view functions
 - **No rate limiting** - one request gets everything
 
 ## 💡 How to Use This Data
