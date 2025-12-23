@@ -108,12 +108,6 @@
     "asset_class": "Price Feed"
   },
   {
-    "name": "COQ / USD",
-    "proxy_address": "0x5B4712ce553E94d9b22bA3CfA10CB6F32fb828E0",
-    "decimals": 18,
-    "asset_class": "Price Feed"
-  },
-  {
     "name": "CRV / USD",
     "proxy_address": "0x7CF8A6090A9053B01F3DF4D4e6CfEdd8c90d9027",
     "decimals": 8,
@@ -142,12 +136,6 @@
     "proxy_address": "0x976D7fAc81A49FA71EF20694a3C56B9eFB93c30B",
     "decimals": 18,
     "asset_class": "Proof of Reserve"
-  },
-  {
-    "name": "deUSD / USD",
-    "proxy_address": "0x7E77D9F06056017334e26bEd92176222169DE6C1",
-    "decimals": 8,
-    "asset_class": "Price Feed"
   },
   {
     "name": "DOT / USD",
