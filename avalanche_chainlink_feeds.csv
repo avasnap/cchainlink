@@ -1,6 +1,7 @@
 name,contract_address,proxy_address,deviation_threshold,heartbeat,decimals,asset_class,product_name,ens,path,base_asset,quote_asset
 WBTC.e Proof of Reserves,0x017780bFA4D66Ee3b4b816a15b0f05DF2654f7B9,0xebEfEAA58636DF9B20a4fAd78Fad8759e6A20e87,1e-7,86400,8,custom,,wbtce-por,wbtc.e-por,,
 YETH-ETH Exchange Rate,0x08DFfE6AC415B0d10C6b7b2d21c106e40c9d2c1f,0x735f816f63890c6E9FF28484E2d257e9c5dc4788,0.05,86400,18,custom,,yetheth-exchange-rate,yeth-eth-exchange-rate,,
+GLV [AVAX-USDC] / USD,0x0944961A913Ab2247827E419B8299642388f787D,0x0A6fd6F735faCD3Cdb1D5aE1c74ebd54a4fc3CCf,0.25,86400,18,Crypto,,glv-avaxusdc-usd,glv-[avax-usdc]-usd,,
 SAND / USD,0x0B2bFcbE40213cF93CE2Be85156DD16E31483f70,0x6f2A1D4014FED967172FC7caCf7a6e04Cf02752e,0.5,86400,8,low,,sand-usd,sand-usd,,
 savUSD-vUSD Exchange Rate,0x0d0284f3E249E635e3984810B233e7bBD62F3C91,0x1ff75B09dC8B749252F46ec482c8a4700Eb6C644,0.05,86400,18,custom,,savusdvusd-exchange-rate,savusd-avusd-exchange-rate,,
 SNX / USD,0x0e3FabD2B77837597a477FD57354c09EB4A4B966,0x01752eAAB988ECb0ceBa2C8FC97c4f1d38Bf246D,0.5,86400,8,medium,,snx-usd,snx-usd,,

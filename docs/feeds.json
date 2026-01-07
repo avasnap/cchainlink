@@ -204,6 +204,12 @@
     "asset_class": "Price Feed"
   },
   {
+    "name": "GLV [AVAX-USDC] / USD",
+    "proxy_address": "0x0A6fd6F735faCD3Cdb1D5aE1c74ebd54a4fc3CCf",
+    "decimals": 18,
+    "asset_class": "Price Feed"
+  },
+  {
     "name": "GMX / USD",
     "proxy_address": "0x3F968A21647d7ca81Fb8A5b69c0A452701d5DCe8",
     "decimals": 8,
