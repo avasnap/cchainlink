@@ -192,12 +192,6 @@
     "asset_class": "Proof of Reserve"
   },
   {
-    "name": "FXS / USD",
-    "proxy_address": "0x12Af94c3716bbf339Aa26BfD927DDdE63B27D50C",
-    "decimals": 8,
-    "asset_class": "Price Feed"
-  },
-  {
     "name": "GHO / USD",
     "proxy_address": "0x076DE3812BDbdAe1330064fc01Adf7f4EAa123f3",
     "decimals": 8,
@@ -266,12 +260,6 @@
   {
     "name": "MANA / USD",
     "proxy_address": "0x774f067083f23cAB866310489419C884a6Dc00a8",
-    "decimals": 8,
-    "asset_class": "Price Feed"
-  },
-  {
-    "name": "MATIC / USD",
-    "proxy_address": "0x1db18D41E4AD2403d9f52b5624031a2D9932Fd73",
     "decimals": 8,
     "asset_class": "Price Feed"
   },
