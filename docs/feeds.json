@@ -396,6 +396,12 @@
     "asset_class": "Price Feed"
   },
   {
+    "name": "SPSEI / SEI Exchange Rate",
+    "proxy_address": "0x7CFb9D83BD42e4522BE2B9032Bcf21fBA9313C51",
+    "decimals": 18,
+    "asset_class": "Price Feed"
+  },
+  {
     "name": "SUSDE / USD",
     "proxy_address": "0x14488868FC8B1fFB381d6F49907EE75B3f0C2a0F",
     "decimals": 8,
@@ -555,6 +561,12 @@
     "name": "XAVA / USD",
     "proxy_address": "0x4Cf57DC9028187b9DAaF773c8ecA941036989238",
     "decimals": 8,
+    "asset_class": "Price Feed"
+  },
+  {
+    "name": "XCU / USD",
+    "proxy_address": "0x32543Ad9dDAC8f883eE4d3c0a21a24E095A9E1B0",
+    "decimals": 18,
     "asset_class": "Price Feed"
   },
   {
