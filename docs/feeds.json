@@ -24,12 +24,6 @@
     "asset_class": "Price Feed"
   },
   {
-    "name": "ALPHA / USD",
-    "proxy_address": "0x7B0ca9A6D03FE0467A31Ca850f5bcA51e027B3aF",
-    "decimals": 8,
-    "asset_class": "Price Feed"
-  },
-  {
     "name": "ARB / USD",
     "proxy_address": "0xd99bcAdbE216D82f4B77eC54a99ea1b6bA96549b",
     "decimals": 8,
