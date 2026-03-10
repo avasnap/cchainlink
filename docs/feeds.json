@@ -72,12 +72,6 @@
     "asset_class": "Price Feed"
   },
   {
-    "name": "BTC.b Proof of Reserves",
-    "proxy_address": "0x99311B4bf6D8E3D3B4b9fbdD09a1B0F4Ad8e06E9",
-    "decimals": 8,
-    "asset_class": "Proof of Reserve"
-  },
-  {
     "name": "Calculated SAVAX / USD",
     "proxy_address": "0x2854Ca10a54800e15A2a25cFa52567166434Ff0a",
     "decimals": 18,
