@@ -222,12 +222,6 @@
     "asset_class": "Price Feed"
   },
   {
-    "name": "KNC / USD",
-    "proxy_address": "0x9df2195dc96e6Ef983B1aAC275649F3f28F82Aa1",
-    "decimals": 8,
-    "asset_class": "Price Feed"
-  },
-  {
     "name": "LINK / AVAX",
     "proxy_address": "0x1b8a25F73c9420dD507406C3A3816A276b62f56a",
     "decimals": 18,
@@ -244,18 +238,6 @@
     "proxy_address": "0x943cEF1B112Ca9FD7EDaDC9A46477d3812a382b6",
     "decimals": 18,
     "asset_class": "Proof of Reserve"
-  },
-  {
-    "name": "MANA / USD",
-    "proxy_address": "0x774f067083f23cAB866310489419C884a6Dc00a8",
-    "decimals": 8,
-    "asset_class": "Price Feed"
-  },
-  {
-    "name": "MATICX / USD Calculated",
-    "proxy_address": "0xc43861646Cdc051D04CA0c9dF2265FFcFa0dF6f3",
-    "decimals": 18,
-    "asset_class": "Price Feed"
   },
   {
     "name": "MIM / USD",
@@ -330,12 +312,6 @@
     "asset_class": "Price Feed"
   },
   {
-    "name": "SAND / USD",
-    "proxy_address": "0x6f2A1D4014FED967172FC7caCf7a6e04Cf02752e",
-    "decimals": 8,
-    "asset_class": "Price Feed"
-  },
-  {
     "name": "savBTC-avBTC Exchange Rate",
     "proxy_address": "0x80091AEc326bE58223620D827fd5189FaC8b43C0",
     "decimals": 18,
@@ -375,12 +351,6 @@
     "name": "SolvBTC.BBN / SolvBTC Exchange Rate",
     "proxy_address": "0xc0990e0989141a5F535a2a24b6Af65618CC83d32",
     "decimals": 18,
-    "asset_class": "Price Feed"
-  },
-  {
-    "name": "SPELL / USD",
-    "proxy_address": "0x4F3ddF9378a4865cf4f28BE51E10AECb83B7daeE",
-    "decimals": 8,
     "asset_class": "Price Feed"
   },
   {
