@@ -540,12 +540,6 @@
     "asset_class": "Price Feed"
   },
   {
-    "name": "YBTC.B / BTC",
-    "proxy_address": "0x7f7A07FFDe2ab490dad0C0D139d6c730bbe842cC",
-    "decimals": 8,
-    "asset_class": "Price Feed"
-  },
-  {
     "name": "YETH-ETH Exchange Rate",
     "proxy_address": "0x735f816f63890c6E9FF28484E2d257e9c5dc4788",
     "decimals": 18,
