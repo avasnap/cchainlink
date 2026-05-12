@@ -528,6 +528,12 @@
     "asset_class": "Price Feed"
   },
   {
+    "name": "XCU / USD",
+    "proxy_address": "0x70F88d3083FC1CA357f1efAF89F2F53281e09f5b",
+    "decimals": 18,
+    "asset_class": "Price Feed"
+  },
+  {
     "name": "xSolvBTC NAV",
     "proxy_address": "0x55b5dc7d7CDD5d3b2Eb189bf11140839076E5d40",
     "decimals": 18,
