@@ -414,6 +414,12 @@
     "asset_class": "Price Feed"
   },
   {
+    "name": "USDC / USD TEST CAPPED",
+    "proxy_address": "0x5dF3D7a07DF29DB7330FF56FD162EB8b6E4421B4",
+    "decimals": 8,
+    "asset_class": "Price Feed"
+  },
+  {
     "name": "USDC.e Proof of Reserves",
     "proxy_address": "0x63769951E4cfDbDC653dD9BBde63D2Ce0746e5F2",
     "decimals": 6,
