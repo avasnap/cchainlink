@@ -54,12 +54,6 @@
     "asset_class": "Price Feed"
   },
   {
-    "name": "BEAM / USD",
-    "proxy_address": "0x3427232b88Ce4e7d62A03289247eE0cA5324f6ba",
-    "decimals": 8,
-    "asset_class": "Price Feed"
-  },
-  {
     "name": "BNB / USD",
     "proxy_address": "0xBb92195Ec95DE626346eeC8282D53e261dF95241",
     "decimals": 8,
@@ -172,12 +166,6 @@
     "proxy_address": "0xbBa56eF1565354217a3353a466edB82E8F25b08e",
     "decimals": 8,
     "asset_class": "Price Feed"
-  },
-  {
-    "name": "fsBTC - Frictionless Bitcoin Treasury Fund - Reserves",
-    "proxy_address": "0xfD2b540D6c147D0889A1F1B97a2A9aB694992677",
-    "decimals": 8,
-    "asset_class": "Proof of Reserve"
   },
   {
     "name": "GHO / USD",
@@ -460,12 +448,6 @@
     "proxy_address": "0xDDaf9290D057BfA12d7576e6dADC109421F31948",
     "decimals": 18,
     "asset_class": "Proof of Reserve"
-  },
-  {
-    "name": "WOO / ETH",
-    "proxy_address": "0xfAa665F5a0e13beea63b6DfF601DD634959690Df",
-    "decimals": 18,
-    "asset_class": "Price Feed"
   },
   {
     "name": "WRSETH-ETH Exchange Rate ",
