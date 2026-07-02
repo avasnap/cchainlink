@@ -228,6 +228,12 @@
     "asset_class": "Proof of Reserve"
   },
   {
+    "name": "Lombard BTC.b Reserves",
+    "proxy_address": "0xaaac35A8E89aB5708B7310aBEe44796e09A9e104",
+    "decimals": 8,
+    "asset_class": "Proof of Reserve"
+  },
+  {
     "name": "MIM / USD",
     "proxy_address": "0x54EdAB30a7134A16a54218AE64C73e1DAf48a8Fb",
     "decimals": 8,
