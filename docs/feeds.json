@@ -186,12 +186,6 @@
     "asset_class": "Price Feed"
   },
   {
-    "name": "Ion Digital Total Reserve",
-    "proxy_address": "0x121C188f76831f504bD29C753074B37a4177cEc3",
-    "decimals": 18,
-    "asset_class": "Price Feed"
-  },
-  {
     "name": "JOE / USD",
     "proxy_address": "0x02D35d3a8aC3e1626d3eE09A78Dd87286F5E8e3a",
     "decimals": 8,
