@@ -186,6 +186,12 @@
     "asset_class": "Price Feed"
   },
   {
+    "name": "HINC NAV",
+    "proxy_address": "0x526aD3cb43a49C7cfD229708b11456d7C9c6D9eA",
+    "decimals": 8,
+    "asset_class": "Price Feed"
+  },
+  {
     "name": "JOE / USD",
     "proxy_address": "0x02D35d3a8aC3e1626d3eE09A78Dd87286F5E8e3a",
     "decimals": 8,
@@ -230,6 +236,12 @@
   {
     "name": "MIMATIC / USD",
     "proxy_address": "0x5D1F504211c17365CA66353442a74D4435A8b778",
+    "decimals": 8,
+    "asset_class": "Price Feed"
+  },
+  {
+    "name": "MWIN NAV",
+    "proxy_address": "0x4f16bb738C589852B6E7Ce202D2ce7906C547E05",
     "decimals": 8,
     "asset_class": "Price Feed"
   },
