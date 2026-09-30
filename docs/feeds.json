@@ -66,6 +66,12 @@
     "asset_class": "Price Feed"
   },
   {
+    "name": "btc-usd-soak",
+    "proxy_address": "0x3f10B014b6BF51fA4a3A6a483f1D0671D9F74b45",
+    "decimals": 18,
+    "asset_class": "Price Feed"
+  },
+  {
     "name": "Calculated SAVAX / USD",
     "proxy_address": "0x2854Ca10a54800e15A2a25cFa52567166434Ff0a",
     "decimals": 18,
