@@ -210,6 +210,12 @@
     "asset_class": "Price Feed"
   },
   {
+    "name": "KRW / USD",
+    "proxy_address": "0x42677eec284D594A8d99aE102Cc7Fd9Aaf8f4D2d",
+    "decimals": 8,
+    "asset_class": "Price Feed"
+  },
+  {
     "name": "LINK / AVAX",
     "proxy_address": "0x1b8a25F73c9420dD507406C3A3816A276b62f56a",
     "decimals": 18,
