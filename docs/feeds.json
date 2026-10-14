@@ -192,6 +192,24 @@
     "asset_class": "Price Feed"
   },
   {
+    "name": "HASTRAAUTO / WYLDS Exchange Rate",
+    "proxy_address": "0x9072cdc167f73a5F488ba5F83307040a678f5881",
+    "decimals": 18,
+    "asset_class": "Price Feed"
+  },
+  {
+    "name": "HASTRAPRIME / WYLDS Exchange Rate",
+    "proxy_address": "0xBd0b5C3A63Db7183B000b26EF8df426f9cc59e33",
+    "decimals": 18,
+    "asset_class": "Price Feed"
+  },
+  {
+    "name": "HASTRASMB / WYLDS Exchange Rate",
+    "proxy_address": "0x6C5AF5D7fd38c4C1E810a496F5B15e87BBfed135",
+    "decimals": 18,
+    "asset_class": "Price Feed"
+  },
+  {
     "name": "HINC NAV",
     "proxy_address": "0x526aD3cb43a49C7cfD229708b11456d7C9c6D9eA",
     "decimals": 8,
